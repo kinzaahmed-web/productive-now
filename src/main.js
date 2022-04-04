@@ -1,13 +1,36 @@
-import '@babel/polyfill'
-import 'mutationobserver-shim'
-import Vue from 'vue'
-import './plugins/bootstrap-vue'
-import App from './App.vue'
-import router from './router'
+import "@babel/polyfill";
+import "mutationobserver-shim";
+import Vue from "vue";
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
+import "firebase/compat/firestore";
 
-Vue.config.productionTip = false
+import "./plugins/bootstrap-vue";
+import App from "./App.vue";
+import router from "./router";
 
-new Vue({
-  router,
-  render: h => h(App)
-}).$mount('#app')
+Vue.config.productionTip = false;
+
+let app = "";
+const firebaseConfig = {
+	apiKey: "AIzaSyDxBmEQBeyFJ_IrMN_pzA3TA0LBroVMrB8",
+	authDomain: "productive-now.firebaseapp.com",
+	projectId: "productive-now",
+	storageBucket: "productive-now.appspot.com",
+	messagingSenderId: "284805137229",
+	appId: "1:284805137229:web:d8ae6c92550a09049b6d04",
+};
+
+// Initialize Firebase
+
+firebase.initializeApp(firebaseConfig);
+
+firebase.auth().onAuthStateChanged(() => {
+	if (!app) {
+		/* eslint-disable no-new */
+		app = new Vue({
+			router,
+			render: (h) => h(App),
+		}).$mount("#app");
+	}
+});
