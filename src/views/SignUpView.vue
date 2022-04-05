@@ -15,7 +15,7 @@
 import firebase from "firebase/compat/app";
 export default {
 	name: "SignUpView",
-	data() {
+	data: function () {
 		return {
 			email: "",
 			password: "",

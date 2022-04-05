@@ -22,14 +22,14 @@ import firebase from "firebase/compat/app";
 
 export default {
 	name: "LoginView",
-	data() {
+	data: function () {
 		return {
 			email: "",
 			password: "",
 		};
 	},
 	methods: {
-		login() {
+		login: function () {
 			firebase
 				.auth()
 				.signInWithEmailAndPassword(this.email, this.password)
@@ -40,7 +40,7 @@ export default {
 					alert("Oops. " + err.message);
 				});
 		},
-		socialLogin() {
+		socialLogin: function () {
 			const provider = new firebase.auth.GoogleAuthProvider();
 
 			firebase
