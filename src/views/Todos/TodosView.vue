@@ -1,28 +1,23 @@
 <template>
 	<div class="main-wrapper">
 		<section class="main">
-			<main class="container card shadow shadow-lg--hover mt-3" id="todolist">
+			<main class="container card shadow shadow-lg--hover mt-5" id="todolist">
 				<div class="row mb-3">
-					<div class="col-6">
-						<h3>to do list</h3>
-					</div>
-					<div class="col-6 text-right">
-						<h3>get productive now :)</h3>
-					</div>
+					<h3 class="mt-3 ml-3">get productive now :)</h3>
 				</div>
 
 				<div class="row">
 					<div class="col-4">
-						<router-link to="/todos" :class="{ selected: status === 'all' }"
-							><span class="badge badge-primary"
-								>Total : {{ this.todos.length || 0 }}</span
+						<router-link to="/todos" :class="{ selected: status === 'all' }">
+							<b-button pill variant="outline-info"
+								>Total : {{ this.todos.length || 0 }}</b-button
 							></router-link
 						>
 					</div>
 					<div class="col-4">
-						<router-link to="/done" :class="{ selected: status === 'done' }"
-							><span class="badge badge-success"
-								>Completed : {{ completedTodos.length || 0 }}</span
+						<router-link to="/done" :class="{ selected: status === 'done' }">
+							<b-button pill variant="outline-success"
+								>Completed : {{ completedTodos.length || 0 }}</b-button
 							></router-link
 						>
 					</div>
@@ -30,13 +25,37 @@
 						<router-link
 							to="/pending"
 							:class="{ selected: status === 'pending' }"
-							><span class="badge badge-warning"
-								>Pending : {{ tasksLeft.length || 0 }}</span
+						>
+							<b-button pill variant="outline-warning"
+								>Pending : {{ tasksLeft.length || 0 }}</b-button
 							></router-link
 						>
 					</div>
+
 					<div class="col-md-12 mt-3">
-						<div class="form-group">
+						<!-- <input
+							class="new-todo"
+							autofocus
+							autocomplete="off"
+							placeholder="What needs to be done?"
+							v-model="newTodo"
+							@keyup.enter="addTodo"
+						/> -->
+						<b-input-group size="sm" class="mb-2">
+							<b-input-group-prepend is-text>
+								<b-icon icon="search"></b-icon>
+							</b-input-group-prepend>
+							<b-form-input
+								type="search"
+								class="new-todo"
+								autofocus
+								autocomplete="off"
+								placeholder="What needs to be done?"
+								v-model="newTodo"
+								@keyup.enter="addTodo"
+							></b-form-input>
+						</b-input-group>
+						<!-- <div class="form-group">
 							<input
 								type="text"
 								name="newTodo"
@@ -51,40 +70,45 @@
 								@click="addTodo($event)"
 								aria-hidden="true"
 							></i>
-						</div>
+						</div> -->
 					</div>
 				</div>
-
-				<b-list-group class="todo-list">
+				<b-list-group class="todo-list mb-4">
 					<b-list-group-item
 						v-for="todo in currentTodos"
 						:key="todo.id"
 						:class="{ completed: todo.complete }"
 						class="d-flex justify-content-between align-items-center"
 					>
+						<!-- <div class="view">
+							<input class="toggle" type="checkbox" v-model="todo.complete" />
+							<label>{{ todo.text }}</label>
+							<button class="delete" @click="deleteTask(todo.id)"></button>
+						</div> -->
 						<div class="todo-info">
 							<span class="label todo-text">{{ todo.text }}</span>
 						</div>
 						<div class="view">
-							<input
-								type="checkbox"
-								class="btn-picto"
-								v-model="todo.complete"
-							/>
-							<button
-								class="delete"
-								tupe="button"
-								aria-label="Delete"
-								@click="deleteTask(todo.id)"
-							>
-								<i aria-hidden="true" class="material-icons">delete</i>
-							</button>
+							<b-button-group class="mr-1">
+								<b-form-checkbox
+									size="lg"
+									aria-label="complete!"
+									v-model="todo.complete"
+								>
+								</b-form-checkbox>
+								<b-button
+									variant="outline-primary"
+									title="Delete"
+									@click="deleteTask(todo.id)"
+								>
+									<b-icon icon="trash"></b-icon> Delete
+								</b-button>
+							</b-button-group>
 						</div>
 					</b-list-group-item>
 				</b-list-group>
 			</main>
 		</section>
-		<button @click="logout">log out</button>
 	</div>
 </template>
 
@@ -100,7 +124,8 @@ export default {
 				{ id: 1, text: "this is a random todo", complete: true },
 				{ id: 2, text: "no sir", complete: false },
 			],
-			newTodoText: "",
+			newTodo: "",
+			editedTodo: null,
 		};
 	},
 	methods: {
@@ -115,19 +140,20 @@ export default {
 		deleteTask(id) {
 			this.todos.splice(id, 1);
 		},
-		addTodo(e) {
-			if (this.newTodo.length) {
-				e.preventDefault();
-				const newTodo = {
-					id: this.todos.length,
-					text: this.newTodo.text,
-					complete: false,
-				};
-				this.todos.push({
-					newTodo,
-				});
-				this.newTodoText = "";
+		addTodo: function () {
+			var value = this.newTodo && this.newTodo.trim();
+			if (!value) {
+				return;
 			}
+			this.todos.push({ id: this.todos.length, text: value, complete: false });
+			this.newTodo = "";
+		},
+		makeToast(append = false) {
+			this.$bvToast.toast(`Good job for completing your task!`, {
+				title: "Completed Task!",
+				autoHideDelay: 5000,
+				appendToast: append,
+			});
 		},
 	},
 	computed: {
@@ -152,3 +178,16 @@ export default {
 	},
 };
 </script>
+<style scoped>
+.new-todos {
+	padding: 16px 16px 16px 60px;
+	border: none;
+	background: rgba(0, 0, 0, 0.003);
+	box-shadow: inset 0 -2px 1px rgba(0, 0, 0, 0.03);
+}
+
+.b-form-checkbox.completed label {
+	color: #d9d9d9;
+	text-decoration: line-through;
+}
+</style>
