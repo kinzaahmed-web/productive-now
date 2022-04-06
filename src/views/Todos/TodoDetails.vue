@@ -7,7 +7,7 @@
 
 <script>
 export default {
-	props: ["id"],
+	props: ["id", "todo"],
 };
 </script>
 

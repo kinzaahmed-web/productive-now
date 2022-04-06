@@ -33,14 +33,6 @@
 					</div>
 
 					<div class="col-md-12 mt-3">
-						<!-- <input
-							class="new-todo"
-							autofocus
-							autocomplete="off"
-							placeholder="What needs to be done?"
-							v-model="newTodo"
-							@keyup.enter="addTodo"
-						/> -->
 						<b-input-group size="sm" class="mb-2">
 							<b-input-group-prepend is-text>
 								<b-icon icon="search"></b-icon>
@@ -55,56 +47,52 @@
 								@keyup.enter="addTodo"
 							></b-form-input>
 						</b-input-group>
-						<!-- <div class="form-group">
-							<input
-								type="text"
-								name="newTodo"
-								class="add-todo-field form-control"
-								placeholder="meal prep..."
-								v-on:keydown.enter="addTodo($event)"
-								autocomplete="off"
-								v-model.trim="newTodoText"
-							/>
-							<i
-								class="fa fa-arrow-right submit-icon"
-								@click="addTodo($event)"
-								aria-hidden="true"
-							></i>
-						</div> -->
 					</div>
 				</div>
-				<b-list-group class="todo-list mb-4">
+				<b-list-group flush class="todo-list mb-4">
 					<b-list-group-item
 						v-for="todo in currentTodos"
 						:key="todo.id"
 						:class="{ completed: todo.complete }"
 						class="d-flex justify-content-between align-items-center"
 					>
-						<!-- <div class="view">
-							<input class="toggle" type="checkbox" v-model="todo.complete" />
-							<label>{{ todo.text }}</label>
-							<button class="delete" @click="deleteTask(todo.id)"></button>
-						</div> -->
+						<b-form-checkbox
+							size="lg"
+							aria-label="complete!"
+							v-model="todo.complete"
+						>
+						</b-form-checkbox>
+
 						<div class="todo-info">
-							<span class="label todo-text">{{ todo.text }}</span>
+							<router-link
+								:to="{
+									name: 'TodoDetails',
+									params: { id: todo.id, todo: todo },
+								}"
+							>
+								<span v-if="todo.complete" class="complete">{{
+									todo.text
+								}}</span>
+								<span v-else>{{ todo.text }}</span>
+							</router-link>
 						</div>
-						<div class="view">
-							<b-button-group class="mr-1">
-								<b-form-checkbox
-									size="lg"
-									aria-label="complete!"
-									v-model="todo.complete"
-								>
-								</b-form-checkbox>
-								<b-button
-									variant="outline-primary"
-									title="Delete"
-									@click="deleteTask(todo.id)"
-								>
-									<b-icon icon="trash"></b-icon> Delete
-								</b-button>
-							</b-button-group>
-						</div>
+						<router-link
+							:to="{
+								name: 'TodoTag',
+								params: { tag: todo.tag, todos: tagTodo(todo.tag) },
+							}"
+						>
+							<b-badge v-if="todo.tag != null" variant="primary" pill>{{
+								todo.tag
+							}}</b-badge>
+						</router-link>
+						<b-button
+							variant="outline-primary"
+							title="Delete"
+							@click="deleteTask(todo.id)"
+						>
+							<b-icon icon="trash"></b-icon> Delete
+						</b-button>
 					</b-list-group-item>
 				</b-list-group>
 			</main>
@@ -120,9 +108,14 @@ export default {
 	data: function () {
 		return {
 			todos: [
-				{ id: 0, text: "hello", complete: false },
-				{ id: 1, text: "this is a random todo", complete: true },
-				{ id: 2, text: "no sir", complete: false },
+				{ id: 0, text: "hello", complete: false, tag: null },
+				{
+					id: 1,
+					text: "this is a random todo",
+					complete: true,
+					tag: null,
+				},
+				{ id: 2, text: "homework 5", complete: false, tag: "math" },
 			],
 			newTodo: "",
 			editedTodo: null,
@@ -155,6 +148,9 @@ export default {
 				appendToast: append,
 			});
 		},
+		tagTodo(tag) {
+			return this.todos.filter((t) => t.tag == tag);
+		},
 	},
 	computed: {
 		tasksLeft() {
@@ -186,7 +182,7 @@ export default {
 	box-shadow: inset 0 -2px 1px rgba(0, 0, 0, 0.03);
 }
 
-.b-form-checkbox.completed label {
+.complete {
 	color: #d9d9d9;
 	text-decoration: line-through;
 }

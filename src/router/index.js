@@ -2,6 +2,7 @@ import Vue from "vue";
 import VueRouter from "vue-router";
 import TodosView from "../views/Todos/TodosView.vue";
 import TodoDetails from "../views/Todos/TodoDetails.vue";
+import TodoTag from "../views/Todos/TodoTag.vue";
 import LoginView from "../views/LoginView.vue";
 import NotFound from "../views/NotFound.vue";
 import SignUpView from "../views/SignUpView.vue";
@@ -45,6 +46,15 @@ const router = new VueRouter({
 			path: "/todos/:id",
 			name: "TodoDetails",
 			component: TodoDetails,
+			props: true,
+			meta: {
+				requiresAuth: true,
+			},
+		},
+		{
+			path: "/todos/:tag",
+			name: "TodoTag",
+			component: TodoTag,
 			props: true,
 			meta: {
 				requiresAuth: true,
