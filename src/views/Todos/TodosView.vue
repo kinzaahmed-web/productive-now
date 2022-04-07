@@ -79,12 +79,14 @@
 						<router-link
 							:to="{
 								name: 'TodoTag',
-								params: { tag: todo.tag, todos: tagTodo(todo.tag) },
+								params: {
+									filter: 'todos',
+									tag: todo.tag,
+									todos: tagTodo(todo.tag),
+								},
 							}"
 						>
-							<b-badge v-if="todo.tag != null" variant="primary" pill>{{
-								todo.tag
-							}}</b-badge>
+							<b-button pill variant="outline-danger">{{ todo.tag }}</b-button>
 						</router-link>
 						<b-button
 							variant="outline-primary"
