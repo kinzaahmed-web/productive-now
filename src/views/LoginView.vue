@@ -1,19 +1,9 @@
 <template>
 	<div class="login">
-		<h3>log in</h3>
-		<input type="text" placeholder="email" /><br />
-		<input type="password" placeholder="password" /><br />
-		<button @click="login">log in</button>
-		<p>
-			or sign in with google <br />
-			<button @click="socialLogin" class="social-button">
-				<img alt="Google Logo" src="../assets/google-logo.png" />
-			</button>
-		</p>
-		<p>
-			want to start being productive but don't have an account?
-			<router-link to="/sign-up">sign up</router-link> today!
-		</p>
+		<h3>log in with google</h3>
+		<button @click="socialLogin" class="social-button">
+			<img alt="Google Logo" src="../assets/google-logo.png" />
+		</button>
 	</div>
 </template>
 
@@ -29,17 +19,6 @@ export default {
 		};
 	},
 	methods: {
-		login: function () {
-			firebase
-				.auth()
-				.signInWithEmailAndPassword(this.email, this.password)
-				.then(() => {
-					this.$router.replace("todos");
-				})
-				.catch((err) => {
-					alert("Oops. " + err.message);
-				});
-		},
 		socialLogin: function () {
 			const provider = new firebase.auth.GoogleAuthProvider();
 
