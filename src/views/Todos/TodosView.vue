@@ -1,7 +1,7 @@
 <template>
 	<div class="main-wrapper">
 		<section class="main">
-			<main class="container card shadow shadow-lg--hover mt-5" id="todolist">
+			<main class="container card shadow shadow-lg--hover m-3" id="todolist">
 				<div class="row mb-3">
 					<h3 class="mt-3 ml-3">get productive now :)</h3>
 				</div>
@@ -42,7 +42,7 @@
 								class="new-todo"
 								autofocus
 								autocomplete="off"
-								placeholder="What needs to be done?"
+								placeholder="what needs to get done?"
 								v-model="newTodo"
 								@keyup.enter="addTodo"
 							></b-form-input>
@@ -80,9 +80,7 @@
 							:to="{
 								name: 'TodoTag',
 								params: {
-									filter: 'todos',
 									tag: todo.tag,
-									todos: tagTodo(todo.tag),
 								},
 							}"
 						>
@@ -97,6 +95,60 @@
 						</b-button>
 					</b-list-group-item>
 				</b-list-group>
+			</main>
+
+			<main class="container card shadow shadow-lg--hover m-3" id="categories">
+				<div class="row mb-3">
+					<h3 class="mt-3 ml-3">category list</h3>
+				</div>
+
+				<div class="row">
+					<div class="col-md-12 mt-3">
+						<b-form-tags v-model="tags" no-outer-focus class="mb-2">
+							<template
+								v-slot="{
+									tags,
+									inputAttrs,
+									inputHandlers,
+									tagVariant,
+									addTag,
+									removeTag,
+								}"
+							>
+								<b-input-group class="mb-2">
+									<b-form-input
+										v-bind="inputAttrs"
+										v-on="inputHandlers"
+										placeholder="New tag - Press enter to add"
+										class="form-control"
+									></b-form-input>
+									<b-input-group-append>
+										<b-button @click="addTag()" variant="primary">Add</b-button>
+									</b-input-group-append>
+								</b-input-group>
+								<div class="d-inline-block" style="font-size: 1.5rem">
+									<b-form-tag
+										v-for="tag in tags"
+										@remove="removeTag(tag)"
+										:key="tag"
+										:title="tag"
+										:variant="tagVariant"
+										class="mr-1"
+										><router-link
+											:to="{
+												path: `todos/${tag}`,
+												params: {
+													tag: tag,
+												},
+											}"
+											>{{ tag }}</router-link
+										></b-form-tag
+									>
+								</div>
+							</template>
+						</b-form-tags>
+					</div>
+				</div>
 			</main>
 		</section>
 	</div>
@@ -118,7 +170,9 @@ export default {
 					tag: null,
 				},
 				{ id: 2, text: "homework 5", complete: false, tag: "math" },
+				{ id: 3, text: "homework 1", complete: false, tag: "apple" },
 			],
+			tags: ["apple", "orange", "banana"],
 			newTodo: "",
 			editedTodo: null,
 		};
@@ -143,15 +197,12 @@ export default {
 			this.todos.push({ id: this.todos.length, text: value, complete: false });
 			this.newTodo = "";
 		},
-		makeToast(append = false) {
-			this.$bvToast.toast(`Good job for completing your task!`, {
-				title: "Completed Task!",
-				autoHideDelay: 5000,
-				appendToast: append,
-			});
+		addTag(tag) {
+			this.tags.push(tag);
 		},
-		tagTodo(tag) {
-			return this.todos.filter((t) => t.tag == tag);
+		removeTag(tag) {
+			const indx = this.tags.indexOf(tag);
+			this.tags.splice(indx, 1);
 		},
 	},
 	computed: {

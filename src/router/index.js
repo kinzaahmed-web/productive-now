@@ -42,7 +42,7 @@ const router = new VueRouter({
 			},
 		},
 		{
-			path: "/todos/:id",
+			path: "/todo/:id",
 			name: "TodoDetails",
 			component: TodoDetails,
 			props: true,
@@ -51,7 +51,7 @@ const router = new VueRouter({
 			},
 		},
 		{
-			path: "/todos/:tag",
+			path: "/:status/:tag",
 			name: "TodoTag",
 			component: TodoTag,
 			props: true,

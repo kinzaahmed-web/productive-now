@@ -12,51 +12,33 @@
 				<div class="row">
 					<div class="col-4">
 						<router-link
-							:to="{
-								name: 'TodoTag',
-								params: {
-									filter: 'todos',
-									tag: tag,
-									todos: todos,
-								},
-							}"
+							:to="`/todos/${tag}`"
+							:class="{ selected: status === 'all' }"
 						>
 							<b-button pill variant="outline-info"
-								>Total : {{ this.todos.length || 0 }}</b-button
-							>
-						</router-link>
+								>Total : {{ this.tagTodos.length || 0 }}</b-button
+							></router-link
+						>
 					</div>
 					<div class="col-4">
 						<router-link
-							:to="{
-								name: 'TodoTag',
-								params: {
-									filter: 'done',
-									tag: tag,
-									todos: filteredTodos('done'),
-								},
-							}"
+							:to="`/done/${tag}`"
+							:class="{ selected: status === 'done' }"
 						>
 							<b-button pill variant="outline-success"
 								>Completed : {{ completedTodos.length || 0 }}</b-button
-							>
-						</router-link>
+							></router-link
+						>
 					</div>
 					<div class="col-4">
 						<router-link
-							:to="{
-								name: 'TodoTag',
-								params: {
-									filter: 'pending',
-									tag: tag,
-									todos: filteredTodos('pending'),
-								},
-							}"
+							:to="`/pending/${tag}`"
+							:class="{ selected: status === 'pending' }"
 						>
 							<b-button pill variant="outline-warning"
 								>Pending : {{ tasksLeft.length || 0 }}</b-button
-							>
-						</router-link>
+							></router-link
+						>
 					</div>
 
 					<div class="col-md-12 mt-3">
@@ -123,9 +105,27 @@ import firebase from "firebase/compat/app";
 export default {
 	name: "TodoTag",
 	props: {
-		filter: String,
 		tag: String,
-		todos: Array,
+	},
+	data: function () {
+		return {
+			todos: [
+				{ id: 0, text: "hello", complete: false, tag: null },
+				{
+					id: 1,
+					text: "this is a random todo",
+					complete: true,
+					tag: null,
+				},
+				{ id: 2, text: "homework 5", complete: false, tag: "math" },
+			],
+			newTodo: "",
+			editedTodo: null,
+			tagTodos: "",
+		};
+	},
+	mounted() {
+		this.tagTodos = this.todos.filter((t) => t.tag === this.tag);
 	},
 	methods: {
 		logout() {
@@ -136,13 +136,16 @@ export default {
 					this.$router.replace("login");
 				});
 		},
+		tagBasedTodos() {
+			return this.tagTodos;
+		},
 		filteredTodos(filter) {
 			if (filter === "done") {
 				return this.completedTodos;
 			} else if (filter === "pending") {
 				return this.tasksLeft;
 			} else {
-				return this.todos;
+				return this.tagTodos;
 			}
 		},
 	},
@@ -157,12 +160,15 @@ export default {
 		// 	}
 		// 	this.todos.push({ id: this.todos.length, text: value, complete: false });
 		// 	this.newTodo = "";
+		// // },
+		// tagTodos() {
+		// 	return this.todos.filter((t) => t.tag === this.tag);
 		// },
 		tasksLeft() {
-			return this.todos.filter((t) => !t.complete);
+			return this.tagTodos.filter((t) => !t.complete);
 		},
 		completedTodos() {
-			return this.todos.filter((t) => t.complete);
+			return this.tagTodos.filter((t) => t.complete);
 		},
 		status() {
 			return this.$route.params.status;
@@ -173,7 +179,7 @@ export default {
 			} else if (this.status === "pending") {
 				return this.tasksLeft;
 			} else {
-				return this.todos;
+				return this.tagTodos;
 			}
 		},
 	},
