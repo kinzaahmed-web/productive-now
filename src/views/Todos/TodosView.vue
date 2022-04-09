@@ -46,6 +46,18 @@
 								v-model="newTodo"
 								@keyup.enter="addTodo"
 							></b-form-input>
+							<b-form-select
+								v-bind="inputAttrs"
+								v-on="inputHandlers"
+								:disabled="disabled || tags.length === 0"
+								:options="tags"
+							>
+								<template #first>
+									<!-- This is required to prevent bugs with Safari -->
+									<option disabled value="">Choose a tag...</option>
+								</template>
+							</b-form-select>
+							<b-button @click="addTodo"> add task </b-button>
 						</b-input-group>
 					</div>
 				</div>
@@ -76,16 +88,14 @@
 								<span v-else>{{ todo.text }}</span>
 							</router-link>
 						</div>
-						<router-link
-							:to="{
-								name: 'TodoTag',
-								params: {
-									tag: todo.tag,
-								},
-							}"
+						<b-form-tag
+							v-if="todo.tag"
+							@remove="removeTagFromTask(todo)"
+							:title="tag"
+							:disabled="disabled"
+							variant="info"
+							>{{ todo.tag }}</b-form-tag
 						>
-							<b-button pill variant="outline-danger">{{ todo.tag }}</b-button>
-						</router-link>
 						<b-button
 							variant="outline-primary"
 							title="Delete"
@@ -106,14 +116,7 @@
 					<div class="col-md-12 mt-3">
 						<b-form-tags v-model="tags" no-outer-focus class="mb-2">
 							<template
-								v-slot="{
-									tags,
-									inputAttrs,
-									inputHandlers,
-									tagVariant,
-									addTag,
-									removeTag,
-								}"
+								v-slot="{ tags, inputAttrs, inputHandlers, addTag, removeTag }"
 							>
 								<b-input-group class="mb-2">
 									<b-form-input
@@ -132,7 +135,7 @@
 										@remove="removeTag(tag)"
 										:key="tag"
 										:title="tag"
-										:variant="tagVariant"
+										variant="info"
 										class="mr-1"
 										><router-link
 											:to="{
@@ -203,6 +206,11 @@ export default {
 		removeTag(tag) {
 			const indx = this.tags.indexOf(tag);
 			this.tags.splice(indx, 1);
+		},
+		removeTagFromTask(todo) {
+			console.log(todo);
+			const indx = this.tags.indexOf(todo);
+			this.tags[indx].tag = null;
 		},
 	},
 	computed: {
