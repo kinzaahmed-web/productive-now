@@ -84,7 +84,7 @@
 							<router-link
 								:to="{
 									name: 'TodoDetails',
-									params: { id: todo.id, todo: todo },
+									params: { id: todo.id },
 								}"
 							>
 								<span v-if="todo.complete" class="complete">{{
