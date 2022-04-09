@@ -118,9 +118,9 @@ export default {
 					tag: null,
 				},
 				{ id: 2, text: "homework 5", complete: false, tag: "math" },
+				{ id: 3, text: "homework 1", complete: false, tag: "apple" },
 			],
 			newTodo: "",
-			editedTodo: null,
 			tagTodos: "",
 		};
 	},
