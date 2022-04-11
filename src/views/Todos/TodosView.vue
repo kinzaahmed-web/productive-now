@@ -210,20 +210,6 @@ export default {
 			},
 			newTag: "",
 			user: auth.currentUser,
-			// todos: [
-			// 	{ id: 0, text: "hello", complete: false, tag: null },
-			// 	{
-			// 		id: 1,
-			// 		text: "this is a random todo",
-			// 		complete: true,
-			// 		tag: null,
-			// 	},
-			// 	{ id: 2, text: "homework 5", complete: false, tag: "math" },
-			// 	{ id: 3, text: "homework 1", complete: false, tag: "apple" },
-			// ],
-			// tags: ["apple", "orange", "banana"],
-			// newTaskTag: "",
-			// newTodo: "",
 		};
 	},
 	created() {
