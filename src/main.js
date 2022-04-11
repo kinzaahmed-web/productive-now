@@ -34,3 +34,12 @@ firebase.auth().onAuthStateChanged(() => {
 		}).$mount("#app");
 	}
 });
+
+const db = firebase.firestore();
+
+const settings = { timestampsInSnapshots: true };
+db.settings(settings);
+
+const auth = firebase.auth();
+
+export { db, auth };

@@ -47,7 +47,7 @@
 								<b-form @submit.stop.prevent>
 									<h3>add a new task</h3>
 									<b-form-input
-										v-model="newTodo"
+										v-model="newTodo.text"
 										:state="taskValidation"
 										class="mb-2 mr-sm-2 mb-sm-0 mt-2"
 										placeholder="do the laundry.."
@@ -59,7 +59,7 @@
 									<b-form-select
 										v-bind="inputAttrs"
 										v-on="inputHandlers"
-										v-model="newTaskTag"
+										v-model="newTodo.tag"
 										:options="tags"
 										required
 										class="mt-4"
@@ -120,7 +120,7 @@
 									variant="outline-primary"
 									title="Delete"
 									pill
-									@click="deleteTask(todo.id)"
+									@click="deleteTask(todo)"
 								>
 									<b-icon icon="trash"></b-icon> delete
 								</b-button>
@@ -139,35 +139,34 @@
 
 						<div class="row">
 							<div class="col-md-12 mt-3">
-								<b-form-tags v-model="tags" no-outer-focus class="mb-2">
-									<template
-										v-slot="{
-											tags,
-											inputAttrs,
-											inputHandlers,
-											addTag,
-											removeTag,
-										}"
+								<b-form @submit.stop.prevent>
+									<b-form-input
+										v-model="newTag"
+										:state="tagValidation"
+										class="mb-2 mr-sm-2 mb-sm-0 mt-2"
+										placeholder="finances.."
+										required
+									></b-form-input>
+									<b-form-valid-feedback :state="tagValidation">
+										looks good!
+									</b-form-valid-feedback>
+									<b-button
+										@click="addTag"
+										type="submit"
+										variant="outline-primary"
+										pill
+										class="m-4"
 									>
-										<b-input-group class="mb-2">
-											<b-form-input
-												v-bind="inputAttrs"
-												v-on="inputHandlers"
-												placeholder="budgeting.."
-												class="form-control"
-											></b-form-input>
-											<b-input-group-append>
-												<b-button @click="addTag()" variant="primary"
-													>add</b-button
-												>
-											</b-input-group-append>
-										</b-input-group>
+										add tag
+									</b-button>
+								</b-form>
+								<b-form-tags v-model="tags" no-outer-focus class="mb-2">
+									<template>
 										<div class="d-inline-block" style="font-size: 1.5rem">
 											<b-form-tag
 												v-for="tag in tags"
 												@remove="removeTag(tag)"
-												:key="tag"
-												:title="tag"
+												:key="tag.id"
 												variant="info"
 												class="mr-1"
 												><router-link
@@ -194,28 +193,75 @@
 
 <script>
 import firebase from "firebase/app";
+import _ from "lodash";
+import { auth, db } from "@/main";
 
 export default {
 	name: "TodosView",
 	data: function () {
 		return {
-			todos: [
-				{ id: 0, text: "hello", complete: false, tag: null },
-				{
-					id: 1,
-					text: "this is a random todo",
-					complete: true,
-					tag: null,
-				},
-				{ id: 2, text: "homework 5", complete: false, tag: "math" },
-				{ id: 3, text: "homework 1", complete: false, tag: "apple" },
-			],
-			tags: ["apple", "orange", "banana"],
-			newTaskTag: "",
-			newTodo: "",
+			selected: "",
+			errors: [],
+			tags: [],
+			todos: [],
+			newTodo: {
+				text: "",
+				tag: "",
+			},
+			newTag: "",
+			user: auth.currentUser,
+			// todos: [
+			// 	{ id: 0, text: "hello", complete: false, tag: null },
+			// 	{
+			// 		id: 1,
+			// 		text: "this is a random todo",
+			// 		complete: true,
+			// 		tag: null,
+			// 	},
+			// 	{ id: 2, text: "homework 5", complete: false, tag: "math" },
+			// 	{ id: 3, text: "homework 1", complete: false, tag: "apple" },
+			// ],
+			// tags: ["apple", "orange", "banana"],
+			// newTaskTag: "",
+			// newTodo: "",
 		};
 	},
+	created() {
+		this.handler();
+	},
 	methods: {
+		getTodos() {
+			let self = this;
+			self.todos = [];
+			db.collection("todo")
+				.where("authorEmail", "==", auth.currentUser.email)
+				.where("complete", "==", false)
+				.get()
+				.then(function (querySnapshot) {
+					querySnapshot.forEach(function (doc) {
+						self.todos.push({
+							id: doc.id,
+							text: doc.data().text,
+							complete: doc.data().complete,
+							date: doc.data().createdAt,
+							tag: doc.data().tag,
+							authorEmail: doc.data().authorEmail,
+						});
+					});
+				});
+		},
+		getTags() {
+			let self = this;
+			self.tags = [];
+			db.collection("category")
+				.where("authorEmail", "==", auth.currentUser.email)
+				.get()
+				.then(function (querySnapshot) {
+					querySnapshot.forEach(function (doc) {
+						self.tags.push(doc.data().name);
+					});
+				});
+		},
 		logout() {
 			firebase
 				.auth()
@@ -224,37 +270,62 @@ export default {
 					this.$router.replace("login");
 				});
 		},
-		deleteTask(id) {
-			this.todos.splice(id, 1);
+		deleteTask(todo) {
+			db.collection("todo").doc(todo.id).delete().then(this.handler);
 		},
-		addTodo: function () {
-			var value = this.newTodo && this.newTodo.trim();
-			if (!value) {
-				return;
-			}
-			var tagValue = this.newTaskTag && this.newTaskTag.trim();
-			if (!tagValue) {
-				return;
-			}
-			this.todos.push({
-				id: this.todos.length,
-				text: value,
-				complete: false,
-				tag: tagValue,
-			});
-			this.newTodo = "";
+		addTodo() {
+			const createdAt = new Date();
+			db.collection("todo")
+				.add({
+					text: this.newTodo.text,
+					tag: this.newTodo.tag,
+					complete: false,
+					authorEmail: this.user.email,
+					createdAt: createdAt,
+				})
+				.then(this.handler);
 		},
-		addTag(tag) {
-			this.tags.push(tag);
+		addTag() {
+			const createdAt = new Date();
+			db.collection("category")
+				.add({
+					name: this.newTag,
+					authorEmail: this.user.email,
+					createdAt: createdAt,
+				})
+				.then(this.handler);
 		},
 		removeTag(tag) {
-			const indx = this.tags.indexOf(tag);
-			this.tags.splice(indx, 1);
+			db.collection("category")
+				.where("name", "==", tag)
+				.get()
+				.then(function (querySnapshot) {
+					querySnapshot.forEach(function (doc) {
+						db.collection("category").doc(doc.id).delete();
+					});
+				});
+			// this.todos = [];
+			db.collection("todo")
+				.where("tag", "==", tag)
+				.get()
+				.then(function (querySnapshot) {
+					querySnapshot.forEach(function (doc) {
+						db.collection("todo").doc(doc.id).update({ tag: null });
+					});
+				})
+				.then(this.handler);
+
+			alert("Delete success");
 		},
 		removeTagFromTask(todo) {
-			console.log(todo);
-			const indx = this.tags.indexOf(todo);
-			this.tags[indx].tag = null;
+			db.collection("todo")
+				.doc(todo.id)
+				.update({ tag: null })
+				.then(this.handler);
+		},
+		handler() {
+			this.getTodos();
+			this.getTags();
 		},
 	},
 	computed: {
@@ -277,7 +348,16 @@ export default {
 			}
 		},
 		taskValidation() {
-			return this.newTodo.length > 3 && this.newTodo.length < 21;
+			return this.newTodo.text.length > 3 && this.newTodo.text.length < 21;
+		},
+		tagValidation() {
+			return this.newTag.length > 3 && this.newTag.length < 10;
+		},
+		orderedTodos: function () {
+			return _.orderBy(this.todos, "date", "desc");
+		},
+		orderedCates: function () {
+			return _.orderBy(this.category, "date", "desc");
 		},
 	},
 };
