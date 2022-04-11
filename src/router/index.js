@@ -5,7 +5,7 @@ import TodoDetails from "../views/Todos/TodoDetails.vue";
 import TodoTag from "../views/Todos/TodoTag.vue";
 import LoginView from "../views/LoginView.vue";
 import NotFound from "../views/NotFound.vue";
-import firebase from "firebase/compat/app";
+import firebase from "firebase/app";
 
 Vue.use(VueRouter);
 

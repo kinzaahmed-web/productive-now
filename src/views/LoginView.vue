@@ -2,13 +2,17 @@
 	<div class="login">
 		<h3>log in with google</h3>
 		<button @click="socialLogin" class="social-button">
-			<img alt="Google Logo" src="../assets/google-logo.png" />
+			<img
+				alt="Google Logo"
+				src="../assets/google-logo.png"
+				referrerpolicy="no-referrer"
+			/>
 		</button>
 	</div>
 </template>
 
 <script>
-import firebase from "firebase/compat/app";
+import firebase from "firebase/app";
 
 export default {
 	name: "LoginView",

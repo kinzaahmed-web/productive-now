@@ -193,7 +193,7 @@
 </template>
 
 <script>
-import firebase from "firebase/compat/app";
+import firebase from "firebase/app";
 
 export default {
 	name: "TodosView",

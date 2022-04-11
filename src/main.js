@@ -1,9 +1,9 @@
 import "@babel/polyfill";
 import "mutationobserver-shim";
 import Vue from "vue";
-import firebase from "firebase/compat/app";
-import "firebase/compat/auth";
-import "firebase/compat/firestore";
+import firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/firestore";
 
 import "./plugins/bootstrap-vue";
 import App from "./App.vue";
