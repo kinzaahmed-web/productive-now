@@ -1,5 +1,7 @@
 # productive-now
 
+[Productive Now](https://productive-now.web.app/)
+
 ## Project setup
 ```
 npm install
