@@ -1,5 +1,14 @@
 # productive-now
 
+[Productive Now](https://productive-now.web.app/)
+
+This application allows users to stay organized! 
+
+## Tech Stack
+- VueJS (2.0)
+- Bootstrap Vue
+- Firebase (8.0)
+
 ## Project setup
 ```
 npm install
