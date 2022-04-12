@@ -4,48 +4,47 @@
 			<router-link to="/todos">
 				<b-button> Go back to all todos! </b-button>
 			</router-link>
-			<main class="container card shadow shadow-lg--hover m-3" id="todolist">
-				<div class="row mb-3">
-					<h3 class="mt-3 ml-3">{{ tag }} task(s)</h3>
-				</div>
-
-				<div class="row">
-					<div class="col-4">
-						<router-link
+			<b-container class="mt-3 card shadow shadow-lg--hover">
+				<b-row
+					><h3 class="mt-3 ml-3">{{ tag }} task(s)</h3></b-row
+				>
+				<b-row>
+					<b-col
+						><router-link
 							:to="`/todos/${tag}`"
 							:class="{ selected: status === 'all' }"
 						>
 							<b-button pill variant="outline-info"
-								>Total : {{ this.tagTodos.length || 0 }}</b-button
+								>Total : {{ this.todos.length || 0 }}</b-button
 							></router-link
-						>
-					</div>
-					<div class="col-4">
-						<router-link
+						></b-col
+					>
+					<b-col
+						><router-link
 							:to="`/done/${tag}`"
 							:class="{ selected: status === 'done' }"
 						>
 							<b-button pill variant="outline-success"
 								>Completed : {{ completedTodos.length || 0 }}</b-button
 							></router-link
-						>
-					</div>
-					<div class="col-4">
-						<router-link
+						></b-col
+					>
+					<b-col
+						><router-link
 							:to="`/pending/${tag}`"
 							:class="{ selected: status === 'pending' }"
 						>
 							<b-button pill variant="outline-warning"
 								>Pending : {{ tasksLeft.length || 0 }}</b-button
 							></router-link
-						>
-					</div>
+						></b-col
+					>
 
 					<div class="col-md-12 mt-3">
 						<b-form @submit.stop.prevent>
 							<h3>add a new task in {{ tag }}</h3>
 							<b-form-input
-								v-model="newTodo"
+								v-model="newTodo.text"
 								:state="taskValidation"
 								class="mb-2 mr-sm-2 mb-sm-0 mt-2"
 								placeholder="do the laundry.."
@@ -65,7 +64,7 @@
 							</b-button>
 						</b-form>
 					</div>
-				</div>
+				</b-row>
 				<b-list-group flush class="todo-list mb-4">
 					<b-list-group-item
 						v-for="todo in currentTodos"
@@ -77,6 +76,7 @@
 							size="lg"
 							aria-label="complete!"
 							v-model="todo.complete"
+							@input="completedTask(todo)"
 						>
 						</b-form-checkbox>
 
@@ -95,8 +95,9 @@
 						</div>
 						<b-form-tag
 							v-if="todo.tag"
+							@remove="removeTagFromTask(todo)"
 							:title="tag"
-							:disabled="true"
+							:disabled="disabled"
 							variant="info"
 							>{{ todo.tag }}</b-form-tag
 						>
@@ -104,80 +105,103 @@
 							variant="outline-primary"
 							title="Delete"
 							pill
-							@click="deleteTask(todo.id)"
+							@click="deleteTask(todo)"
 						>
-							<b-icon icon="trash"></b-icon> delete
+							<b-icon-trash-fill></b-icon-trash-fill>
 						</b-button>
 					</b-list-group-item>
 				</b-list-group>
-			</main>
+			</b-container>
 		</section>
 	</div>
 </template>
 
 <script>
-import firebase from "firebase/app";
+import { auth, db } from "@/main";
+import { BIconTrashFill } from "bootstrap-vue";
+
 export default {
 	name: "TodoTag",
 	props: {
 		tag: String,
 	},
+	components: {
+		BIconTrashFill,
+	},
 	data: function () {
 		return {
-			todos: [
-				{ id: 0, text: "hello", complete: false, tag: null },
-				{
-					id: 1,
-					text: "this is a random todo",
-					complete: true,
-					tag: null,
-				},
-				{ id: 2, text: "homework 5", complete: false, tag: "math" },
-				{ id: 3, text: "homework 1", complete: false, tag: "apple" },
-			],
-			newTodo: "",
-			tagTodos: "",
+			selected: "",
+			todos: [],
+			newTodo: {
+				text: "",
+				tag: "",
+			},
+			user: auth.currentUser,
 		};
 	},
-	mounted() {
-		this.tagTodos = this.todos.filter((t) => t.tag === this.tag);
+	created() {
+		this.handler();
 	},
 	methods: {
-		logout() {
-			firebase
-				.auth()
-				.signOut()
-				.then(() => {
-					this.$router.replace("login");
+		getTodos() {
+			let self = this;
+			self.todos = [];
+			db.collection("todo")
+				.where("authorEmail", "==", auth.currentUser.email)
+				.where("tag", "==", this.tag)
+				.get()
+				.then(function (querySnapshot) {
+					querySnapshot.forEach(function (doc) {
+						self.todos.push({
+							id: doc.id,
+							text: doc.data().text,
+							complete: doc.data().complete,
+							date: doc.data().createdAt,
+							tag: doc.data().tag,
+							authorEmail: doc.data().authorEmail,
+						});
+					});
 				});
 		},
-		deleteTask(id) {
-			this.tagTodos.splice(id, 1);
+		deleteTask(todo) {
+			db.collection("todo").doc(todo.id).delete().then(this.handler);
 		},
-		addTodo: function () {
-			var value = this.newTodo && this.newTodo.trim();
-			if (!value) {
-				return;
-			}
-			var tagValue = this.tag && this.tag.trim();
-			if (!tagValue) {
-				return;
-			}
-			this.todos.push({
-				id: this.tagTodos.length,
-				text: value,
-				complete: false,
-				tag: tagValue,
-			});
-			this.newTodo = "";
+		addTodo() {
+			const createdAt = new Date();
+			const tagValue = this.tag && this.tag.trim();
+			db.collection("todo")
+				.add({
+					text: this.newTodo.text,
+					tag: tagValue,
+					complete: false,
+					authorEmail: this.user.email,
+					createdAt: createdAt,
+				})
+				.then(this.handler);
+		},
+		removeTagFromTask(todo) {
+			db.collection("todo")
+				.doc(todo.id)
+				.update({ tag: null })
+				.then(this.handler);
+		},
+		completedTask(todo) {
+			db.collection("todo")
+				.doc(todo.id)
+				.update({ complete: todo.complete })
+				.then(this.handler);
+		},
+		handler() {
+			this.getTodos();
+			this.getTags();
 		},
 	},
 	computed: {
 		tasksLeft() {
-			return this.tagTodos.filter((t) => !t.complete);
+			return this.todos.filter((t) => !t.complete);
 		},
 		completedTodos() {
-			return this.tagTodos.filter((t) => t.complete);
+			return this.todos.filter((t) => t.complete);
 		},
 		status() {
 			return this.$route.params.status;
@@ -188,24 +212,17 @@ export default {
 			} else if (this.status === "pending") {
 				return this.tasksLeft;
 			} else {
-				return this.tagTodos;
+				return this.todos;
 			}
 		},
 		taskValidation() {
-			return this.newTodo.length > 3 && this.newTodo.length < 21;
+			return this.newTodo.text.length > 3 && this.newTodo.text.length < 21;
 		},
 	},
 };
 </script>
 
 <style scoped>
-.new-todos {
-	padding: 16px 16px 16px 60px;
-	border: none;
-	background: rgba(0, 0, 0, 0.003);
-	box-shadow: inset 0 -2px 1px rgba(0, 0, 0, 0.03);
-}
-
 .complete {
 	color: #d9d9d9;
 	text-decoration: line-through;

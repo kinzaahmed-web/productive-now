@@ -92,6 +92,7 @@
 									size="lg"
 									aria-label="complete!"
 									v-model="todo.complete"
+									@input="completedTask(todo)"
 								>
 								</b-form-checkbox>
 
@@ -122,7 +123,7 @@
 									pill
 									@click="deleteTask(todo)"
 								>
-									<b-icon icon="trash"></b-icon> delete
+									<b-icon-trash-fill></b-icon-trash-fill>
 								</b-button>
 							</b-list-group-item>
 						</b-list-group>
@@ -192,16 +193,17 @@
 </template>
 
 <script>
-import firebase from "firebase/app";
-import _ from "lodash";
 import { auth, db } from "@/main";
+import { BIconTrashFill } from "bootstrap-vue";
 
 export default {
 	name: "TodosView",
+	components: {
+		BIconTrashFill,
+	},
 	data: function () {
 		return {
 			selected: "",
-			errors: [],
 			tags: [],
 			todos: [],
 			newTodo: {
@@ -221,7 +223,6 @@ export default {
 			self.todos = [];
 			db.collection("todo")
 				.where("authorEmail", "==", auth.currentUser.email)
-				.where("complete", "==", false)
 				.get()
 				.then(function (querySnapshot) {
 					querySnapshot.forEach(function (doc) {
@@ -246,14 +247,6 @@ export default {
 					querySnapshot.forEach(function (doc) {
 						self.tags.push(doc.data().name);
 					});
-				});
-		},
-		logout() {
-			firebase
-				.auth()
-				.signOut()
-				.then(() => {
-					this.$router.replace("login");
 				});
 		},
 		deleteTask(todo) {
@@ -290,7 +283,6 @@ export default {
 						db.collection("category").doc(doc.id).delete();
 					});
 				});
-			// this.todos = [];
 			db.collection("todo")
 				.where("tag", "==", tag)
 				.get()
@@ -307,6 +299,12 @@ export default {
 			db.collection("todo")
 				.doc(todo.id)
 				.update({ tag: null })
+				.then(this.handler);
+		},
+		completedTask(todo) {
+			db.collection("todo")
+				.doc(todo.id)
+				.update({ complete: todo.complete })
 				.then(this.handler);
 		},
 		handler() {
@@ -338,12 +336,6 @@ export default {
 		},
 		tagValidation() {
 			return this.newTag.length > 3 && this.newTag.length < 10;
-		},
-		orderedTodos: function () {
-			return _.orderBy(this.todos, "date", "desc");
-		},
-		orderedCates: function () {
-			return _.orderBy(this.category, "date", "desc");
 		},
 	},
 };
